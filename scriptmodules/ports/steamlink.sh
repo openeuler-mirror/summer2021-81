@@ -21,7 +21,7 @@ function depends_steamlink() {
 }
 
 function install_bin_steamlink() {
-    aptInstall steamlink
+    pkgInstall steamlink
 }
 
 function remove_steamlink() {

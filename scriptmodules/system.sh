@@ -15,7 +15,18 @@ function setup_env() {
     __INFMSGS=()
 
     # if no apt-get we need to fail
-    [[ -z "$(which apt-get)" ]] && fatalError "Unsupported OS - No apt-get command found"
+    # [[ -z "$(which apt-get)" ]] && fatalError "Unsupported OS - No apt-get command found"
+
+    # identify package management tools
+    if [[ -n "$(which apt-get)" ]]; then
+        __pkg_tool=apt-get
+    elif [[ -n "$(which dnf)" ]]; then
+        __pkg_tool=dnf
+    elif [[ -n "$(which yum)" ]]; then
+        __pkg_tool=yum
+    else
+        fatalError "Unsupported OS - No package management tools found"
+    fi
 
     test_chroot
 
@@ -149,11 +160,17 @@ function get_os_version() {
     local os
     # armbian uses a minimal shell script replacement for lsb_release with basic
     # parameter parsing that requires the arguments split rather than using -sidrc
-    mapfile -t os < <(lsb_release -s -i -d -r -c)
-    __os_id="${os[0]}"
-    __os_desc="${os[1]}"
-    __os_release="${os[2]}"
-    __os_codename="${os[3]}"
+    # mapfile -t os < <(lsb_release -s -i -d -r -c)
+    # __os_id="${os[0]}"
+    # __os_desc="${os[1]}"
+    # __os_release="${os[2]}"
+    # __os_codename="${os[3]}"
+
+    # openeuler_lsb will output all results in a single line, so we can't use mapfile
+    __os_id=$(lsb_release -s -i)
+    __os_desc=$(lsb_release -s -d)
+    __os_release=$(lsb_release -s -r)
+    __os_codename=$(lsb_release -s -c)
 
     local error=""
     case "$__os_id" in
@@ -273,6 +290,9 @@ function get_os_version() {
                 __os_ubuntu_ver="18.04"
                 __os_debian_ver="10"
             fi
+            ;;
+        openEuler)
+            __os_openEuler_ver=$__os_release
             ;;
         *)
             error="Unsupported OS"

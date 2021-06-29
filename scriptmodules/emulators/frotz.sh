@@ -22,7 +22,7 @@ function _update_hook_frotz() {
 }
 
 function install_bin_frotz() {
-    aptInstall frotz
+    pkgInstall frotz
 }
 
 function remove_frotz() {

@@ -134,7 +134,7 @@ function editFile() {
 }
 
 ## @fn hasPackage()
-## @param package name of Debian package
+## @param package name of Debian/rpm package
 ## @param version requested version (optional)
 ## @param comparison type of comparison - defaults to `ge` (greater than or equal) if a version parameter is provided.
 ## @brief Test for an installed Debian package / package version.
@@ -146,29 +146,48 @@ function hasPackage() {
     local comp="$3"
     [[ -z "$comp" ]] && comp="ge"
 
-    local ver
-    local status
-    local out=$(dpkg-query -W --showformat='${Status} ${Version}' $1 2>/dev/null)
-    if [[ "$?" -eq 0 ]]; then
-        ver="${out##* }"
-        status="${out% *}"
-    fi
+    if [[ "$__pkg_tool" == "apt-get" ]];then 
+        local ver
+        local status
+        local out=$(dpkg-query -W --showformat='${Status} ${Version}' $1 2>/dev/null)
+        if [[ "$?" -eq 0 ]]; then
+            ver="${out##* }"
+            status="${out% *}"
+        fi
 
-    local installed=0
-    [[ "$status" == *"ok installed" ]] && installed=1
-    # if we are not checking version
-    if [[ -z "$req_ver" ]]; then
-        # if the package is installed return true
-        [[ "$installed" -eq 1 ]] && return 0
+        local installed=0
+        [[ "$status" == *"ok installed" ]] && installed=1
+        # if we are not checking version
+        if [[ -z "$req_ver" ]]; then
+            # if the package is installed return true
+            [[ "$installed" -eq 1 ]] && return 0
+        else
+            # if checking version and the package is not installed we need to clear "ver" as it may contain
+            # the version number of a removed package and give a false positive with compareVersions.
+            # we still need to do the version check even if not installed due to the varied boolean operators
+            [[ "$installed" -eq 0 ]] && ver=""
+
+            compareVersions "$ver" "$comp" "$req_ver" && return 0
+        fi
+        return 1
     else
-        # if checking version and the package is not installed we need to clear "ver" as it may contain
-        # the version number of a removed package and give a false positive with compareVersions.
-        # we still need to do the version check even if not installed due to the varied boolean operators
-        [[ "$installed" -eq 0 ]] && ver=""
+        local ver=$(rpm -q --qf '%{epochnum}:%{V}-%{R}' $1)
+        local status="${ver%% *}"
+        # if found $1, ver = version
+        # if not found, ver = "package $1 is not installed", status="package"
 
-        compareVersions "$ver" "$comp" "$req_ver" && return 0
+        # since rpm query will only return install or not, we don't need to clear ver
+        # if not found package, return false
+        [[ "$status" == "package" ]] && return 1
+        # if found package
+        if [[ -z "$req_ver" ]]; then
+            # we are not checking version, return true
+            return 0
+        else
+            compareVersions "$ver" "$comp" "$req_ver" && return 0
+        fi
+        return 1
     fi
-    return 1
 }
 
 ## @fn aptUpdate()
@@ -180,12 +199,34 @@ function aptUpdate() {
     fi
 }
 
+## @fn pkgInstall()
+## @param packages package / space separated list of packages to install
+## @brief Calls apt-get/yum/dnf install with the packages provided. attention: this function will not check your install option, so if you use options like --no-install-recommends, use aptInstall instead.
+function pkgInstall() {
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        aptUpdate
+    fi
+    $__pkg_tool install -y "$@"
+    return $?
+}
+
 ## @fn aptInstall()
 ## @param packages package / space separated list of packages to install
 ## @brief Calls apt-get install with the packages provided.
 function aptInstall() {
     aptUpdate
     apt-get install -y "$@"
+    return $?
+}
+
+## @fn pkgRemove()
+## @param packages package / space separated list of packages to install
+## @brief Calls apt-get/yum/dnf remove with the packages provided. attention: this function will not check your remove option, so if you use options like --purge, use aptRemove instaed.
+function pkgRemove() {
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        aptUpdate
+    fi
+    $__pkg_tool remove -y "$@"
     return $?
 }
 
@@ -243,6 +284,58 @@ function _mapPackage() {
                 [[ "$own_sdl2" -eq 1 ]] && pkg="RP sdl2 $pkg"
             fi
             ;;
+        dirmngr)
+            [[ "$__os_id" == "openEuler" ]] && pkg=gnupg2
+            ;;
+        g++)
+            [[ "$__os_id" == "openEuler" ]] && pkg=gcc-c++
+            ;;
+        build-essential)
+            # this package will contain gcc, g++, make, dpkg-dev. Because openEuler use rpm, we can ignore dpkg-dev. since we will install gcc, g++, make, altogether, we just need to install "make" to replace build-essential.
+            [[ "$__os_id" == "openEuler" ]] && pkg=make
+            ;;
+        lsb-release)
+            [[ -f /etc/os-release && -n "$(grep openEuler /etc/os-release)" ]] && pkg="openeuler-lsb"
+            ;;
+        libudev-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=systemd-devel
+            ;;
+        libxkbcommon-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libxkbcommon-devel
+            ;;
+        libasound2-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=alsa-lib
+            ;;
+        libusb-1.0-0-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libusbx-devel
+            ;;
+        libx11-xcb-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libX11-devel
+            ;;
+        libgbm-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libX11-devel
+            ;;
+        libfreeimage-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=freeimage-devel
+            ;;
+        libcurl4-openssl-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libcurl-devel
+            ;;
+        libsm-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libSM-devel
+            ;;
+        fbi)
+            [[ "$__os_id" == "openEuler" ]] && pkg=bash-completion
+            ;;
+        libsamplerate0-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libsamplerate-devel
+            ;;
+        libspeexdsp-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libsamplerate-devel
+            ;;
+        fonts-freefont-ttf)
+            [[ "$__os_id" == "openEuler" ]] && pkg=texlive-gnu-freefont
+            ;;
     esac
     echo "$pkg"
 }
@@ -254,7 +347,7 @@ function _mapPackage() {
 ## @retval 1 on failure
 function getDepends() {
     local own_pkgs=()
-    local apt_pkgs=()
+    local target_pkgs=()
     local all_pkgs=()
     local pkg
     for pkg in "$@"; do
@@ -278,15 +371,15 @@ function getDepends() {
         fi
 
         if [[ "$md_mode" == "remove" ]]; then
-            # add package to apt_pkgs for removal if installed
+            # add package to target_pkgs for removal if installed
             if hasPackage "$pkg"; then
-                apt_pkgs+=("$pkg")
+                target_pkgs+=("$pkg")
                 all_pkgs+=("$pkg")
             fi
         else
-            # add package to apt_pkgs for installation if not installed
+            # add package to target_pkgs for installation if not installed
             if ! hasPackage "$pkg"; then
-                apt_pkgs+=("$pkg")
+                target_pkgs+=("$pkg")
                 all_pkgs+=("$pkg")
             fi
         fi
@@ -295,7 +388,7 @@ function getDepends() {
 
 
     # return if no packages required
-    [[ ${#apt_pkgs[@]} -eq 0 && ${#own_pkgs[@]} -eq 0 ]] && return
+    [[ ${#target_pkgs[@]} -eq 0 && ${#own_pkgs[@]} -eq 0 ]] && return
 
     # if we are removing, then remove packages, do an autoremove to clean up additional packages and return
     if [[ "$md_mode" == "remove" ]]; then
@@ -303,8 +396,13 @@ function getDepends() {
         for pkg in ${own_pkgs[@]}; do
             rp_callModule "$pkg" remove
         done
-        apt-get remove --purge -y "${apt_pkgs[@]}"
-        apt-get autoremove --purge -y
+        if [[ "$__pkg_tool" == "apt-get" ]]; then
+            apt-get remove --purge -y "${target_pkgs[@]}"
+            apt-get autoremove --purge -y
+        else
+            $__pkg_tool remove -y "${target_pkgs[@]}"
+            $__pkg_tool autoremove -y
+        fi
         return 0
     fi
 
@@ -314,13 +412,16 @@ function getDepends() {
     for pkg in ${own_pkgs[@]}; do
        rp_callModule "$pkg" _auto_
     done
-
-    aptInstall --no-install-recommends "${apt_pkgs[@]}"
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        aptInstall --no-install-recommends "${target_pkgs[@]}"
+    else
+        $__pkg_tool install -y --setopt=install_weak_deps=False "${target_pkgs[@]}"
+    fi
 
     local failed=()
     # check the required packages again rather than return code of apt-get,
     # as apt-get might fail for other reasons (eg other half installed packages)
-    for pkg in ${apt_pkgs[@]}; do
+    for pkg in ${target_pkgs[@]}; do
         if ! hasPackage "$pkg"; then
             # workaround for installing samba in a chroot (fails due to failed smbd service restart)
             # we replace the init.d script with an empty script so the install completes
@@ -552,8 +653,34 @@ function diffFiles() {
 ## @retval 0 if the comparison was true
 ## @retval 1 if the comparison was false
 function compareVersions() {
-    dpkg --compare-versions "$1" "$2" "$3" >/dev/null
-    return $?
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        dpkg --compare-versions "$1" "$2" "$3" >/dev/null
+        return $?
+    else
+        [[ "$__rpmdevtools_installed" == 0 ]] && $__pkg_tool install -y rpmdevtools && $__rpmdev_vercmp_installed=1
+
+        if [[ -z $1 ]]; then
+            if [[ "$2" == lt || "$2" == le || "$2" == ne ]]; then
+                return 0
+            else
+                return 1
+            fi
+        fi
+
+        rpmdev-vercmp "$1" "$3"
+        ret=$?
+        if [[ "$ret" -eq 0 && "$2" == "eq" ]]; then
+            return 0
+        # 11 means $1 is newer than $3, which is $1 > $3
+        elif [[ "$ret" -eq 11 ]] && [[ "$2" == "ge" || "$2" == "gt" || "$2" == "ne" ]]; then
+            return 0
+        # 12 means $1 is older than $3, which is $1 < $3
+        elif [[ "$ret" -eq 12 ]] && [[ "$2" == "le" || "$2" == "lt" || "$2" == "ne" ]]; then
+            return 0
+        else
+            return 1
+        fi
+    fi
 }
 
 ## @fn dirIsEmpty()

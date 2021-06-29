@@ -25,7 +25,7 @@ function depends_lincity-ng() {
 }
 
 function install_bin_lincity-ng() {
-    aptInstall lincity-ng
+    pkgInstall lincity-ng
 }
 
 function remove_lincity-ng() {

@@ -20,7 +20,7 @@ function depends_micropolis() {
 }
 
 function install_bin_micropolis() {
-    aptInstall micropolis
+    pkgInstall micropolis
 }
 
 function remove_micropolis() {

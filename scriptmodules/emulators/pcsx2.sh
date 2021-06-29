@@ -48,7 +48,7 @@ function install_bin_pcsx2() {
     local version
     [[ -n "${__os_ubuntu_ver}" ]] && version="-unstable"
 
-    aptInstall "pcsx2$version"
+    pkgInstall "pcsx2$version"
 }
 
 function remove_pcsx2() {

@@ -21,7 +21,7 @@ function _update_hook_supertux() {
 }
 
 function install_bin_supertux() {
-    aptInstall supertux
+    pkgInstall supertux
 }
 
 function remove_supertux() {

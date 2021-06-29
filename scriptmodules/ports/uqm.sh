@@ -54,9 +54,9 @@ function install_uqm() {
     if [[ "$__os_id" == "Raspbian" ]]; then
         cp -v *.deb "$md_inst"
         dpkg -i *.deb
-        aptInstall uqm-content uqm-music uqm-voice
+        pkgInstall uqm-content uqm-music uqm-voice
     else
-        aptInstall uqm uqm-content uqm-music uqm-voice
+        pkgInstall uqm uqm-content uqm-music uqm-voice
     fi
 }
 
@@ -66,9 +66,9 @@ function install_bin_uqm() {
     if hasPackage raspberrypi-bootloader; then
         cd "$md_inst"
         dpkg -i *.deb
-        aptInstall uqm-content uqm-music uqm-voice
+        pkgInstall uqm-content uqm-music uqm-voice
     else
-        aptInstall uqm uqm-content uqm-music uqm-voice
+        pkgInstall uqm uqm-content uqm-music uqm-voice
     fi
 }
 

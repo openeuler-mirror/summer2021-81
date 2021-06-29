@@ -64,7 +64,7 @@ function depends_fs-uae() {
 }
 
 function install_bin_fs-uae() {
-    aptInstall fs-uae fs-uae-launcher fs-uae-arcade
+    pkgInstall fs-uae fs-uae-launcher fs-uae-arcade
 }
 
 function remove_fs-uae() {

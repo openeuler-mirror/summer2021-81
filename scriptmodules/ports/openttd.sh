@@ -21,7 +21,7 @@ function _update_hook_openttd() {
 }
 
 function install_bin_openttd() {
-    aptInstall openttd
+    pkgInstall openttd
 }
 
 function remove_openttd() {
