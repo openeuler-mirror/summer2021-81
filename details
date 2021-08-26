@@ -1,0 +1,54 @@
+coin-or-Cbc.spec:
+MUMPS-devel
+coin-or-Cgl-doc
+coin-or-Clp-doc
+coin-or-DyLP-doc
+coin-or-Vol-doc
+flexiblas-devel
+mp-devel
+pkgconfig(cgl)
+pkgconfig(clp)
+pkgconfig(coindatamiplib3)
+pkgconfig(coindatanetlib)
+pkgconfig(dylp)
+pkgconfig(nauty)
+pkgconfig(vol)
+
+coin-or-Osi.spec:
+coin-or-CoinUtils-doc
+coin-or-Data-Netlib
+pkgconfig(coinutils)
+
+dcmtk.spec:
+CharLS-devel >= 2.0.0
+
+eigen3.spec:
+flexiblas-devel
+metis-devel
+scotch-devel
+sparsehash-devel
+
+gdal.spec:
+
+mpi4py.spec:
+
+MUMPS.spec:
+blacs-mpich-devel
+blacs-openmpi-devel
+metis-devel
+pkgconfig(flexiblas)
+ptscotch-mpich-devel >= 6.0.1
+ptscotch-openmpi-devel >= 6.0.1
+rpm-mpi-hooks
+scalapack-mpich-devel
+scalapack-openmpi-devel
+scotch-devel >= 6.0.1
+
+python-breathe.spec:
+
+qt5-qtx11extras.spec:
+qt5-qtbase-devel >= 5.15.2
+
+R.spec:
+flexiblas-devel
+tre-devel

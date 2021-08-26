@@ -1,0 +1,4 @@
+*.tar.gz
+*.log
+*.rpm
+dep_rpm_*

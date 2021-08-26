@@ -1,0 +1,14 @@
+ceres-solver-devel
+coin-or-Clp-devel
+eigen3-devel
+gdal-devel
+gdcm-devel
+libmfx-devel
+libucil-devel
+openni-devel
+openni-primesense
+pylint
+python3-flake8
+vtk-devel
+vtk-java
+redhat-rpm-config
