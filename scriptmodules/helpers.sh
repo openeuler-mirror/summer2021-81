@@ -336,6 +336,21 @@ function _mapPackage() {
         fonts-freefont-ttf)
             [[ "$__os_id" == "openEuler" ]] && pkg=texlive-gnu-freefont
             ;;
+        libfreetype6-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=freetype-devel
+            ;;
+        libpng12-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=libpng12-devel
+            ;;
+        libvlc-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=vlc-devel
+            ;;
+        libvlccore-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=vlc-core
+            ;;
+        libboost-filesystem-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg=boost-filesystem
+            ;;
     esac
     echo "$pkg"
 }
