@@ -304,7 +304,7 @@ function _mapPackage() {
             [[ "$__os_id" == "openEuler" ]] && pkg=libxkbcommon-devel
             ;;
         libasound2-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=alsa-lib
+            [[ "$__os_id" == "openEuler" ]] && pkg="alsa-lib-devel libcec-devel"
             ;;
         libusb-1.0-0-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=libusbx-devel
@@ -313,7 +313,7 @@ function _mapPackage() {
             [[ "$__os_id" == "openEuler" ]] && pkg=libX11-devel
             ;;
         libgbm-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libX11-devel
+            [[ "$__os_id" == "openEuler" ]] && pkg=mesa-libgbm-devel
             ;;
         libfreeimage-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=freeimage-devel
@@ -325,13 +325,13 @@ function _mapPackage() {
             [[ "$__os_id" == "openEuler" ]] && pkg=libSM-devel
             ;;
         fbi)
-            [[ "$__os_id" == "openEuler" ]] && pkg=bash-completion
+            [[ "$__os_id" == "openEuler" ]] && pkg=fbida
             ;;
         libsamplerate0-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=libsamplerate-devel
             ;;
         libspeexdsp-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libsamplerate-devel
+            [[ "$__os_id" == "openEuler" ]] && pkg=speexdsp-devel
             ;;
         fonts-freefont-ttf)
             [[ "$__os_id" == "openEuler" ]] && pkg=texlive-gnu-freefont
@@ -349,7 +349,7 @@ function _mapPackage() {
             [[ "$__os_id" == "openEuler" ]] && pkg=vlc-core
             ;;
         libboost-filesystem-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=boost-filesystem
+            [[ "$__os_id" == "openEuler" ]] && pkg="boost-filesystem boost-devel libcec-devel"
             ;;
     esac
     echo "$pkg"
@@ -506,6 +506,17 @@ function gitPullOrClone() {
     [[ -z "$branch" ]] && branch="master"
     local commit="$4"
     local depth="$5"
+
+    repo=$(echo $repo | sed 's/https/git/g')
+
+    # if repo is blank then use the rp_module_repo info
+    if [[ -z "$repo" && -n "$md_repo_url" ]]; then
+        repo="$(rp_resolveRepoParam "$md_repo_url")"
+        branch="$(rp_resolveRepoParam "$md_repo_branch")"
+        commit="$(rp_resolveRepoParam "$md_repo_commit")"
+    fi
+    [[ -z "$repo" ]] && return 1
+    [[ -z "$branch" ]] && branch="master"
     if [[ -z "$depth" && "$__persistent_repos" -ne 1 && -z "$commit" ]]; then
         depth=1
     else
