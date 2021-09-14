@@ -171,21 +171,14 @@ function hasPackage() {
         fi
         return 1
     else
+        rpm -q $1
+        [[ "$?" == "1" ]] && return 1  # if not found package, return false
+        
         local ver=$(rpm -q --qf '%{epochnum}:%{V}-%{R}' $1)
-        local status="${ver%% *}"
-        # if found $1, ver = version
-        # if not found, ver = "package $1 is not installed", status="package"
 
-        # since rpm query will only return install or not, we don't need to clear ver
-        # if not found package, return false
-        [[ "$status" == "package" ]] && return 1
-        # if found package
-        if [[ -z "$req_ver" ]]; then
-            # we are not checking version, return true
-            return 0
-        else
-            compareVersions "$ver" "$comp" "$req_ver" && return 0
-        fi
+        [[ -z "$req_ver" ]] && return 0     # we are not checking version, return true
+            
+        compareVersions "$ver" "$comp" "$req_ver" && return 0
         return 1
     fi
 }
@@ -265,7 +258,11 @@ function _mapPackage() {
             ;;
         # map libpng-dev to libpng12-dev for Jessie
         libpng-dev)
-            compareVersions "$__os_debian_ver" lt 9 && pkg="libpng12-dev"
+            if [[ "$__os_id" == "openEuler" ]]; then
+                pkg="libpng12-devel"
+            else
+                compareVersions "$__os_debian_ver" lt 9 && pkg="libpng12-dev"
+            fi
             ;;
         libsdl1.2-dev)
             rp_hasModule "sdl1" && pkg="RP sdl1 $pkg"
@@ -300,9 +297,6 @@ function _mapPackage() {
         libudev-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=systemd-devel
             ;;
-        libxkbcommon-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libxkbcommon-devel
-            ;;
         libasound2-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg="alsa-lib-devel libcec-devel"
             ;;
@@ -310,6 +304,9 @@ function _mapPackage() {
             [[ "$__os_id" == "openEuler" ]] && pkg=libusbx-devel
             ;;
         libx11-xcb-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="libX11-devel libXxf86vm-devel"
+            ;;
+        libx11-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=libX11-devel
             ;;
         libgbm-dev)
@@ -339,9 +336,6 @@ function _mapPackage() {
         libfreetype6-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=freetype-devel
             ;;
-        libpng12-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libpng12-devel
-            ;;
         libvlc-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=vlc-devel
             ;;
@@ -351,6 +345,30 @@ function _mapPackage() {
         libboost-filesystem-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg="boost-filesystem boost-devel libcec-devel"
             ;;
+        libxxf86vm-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="libXxf86vm-devel"
+            ;;
+        libxcursor-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="libXcursor-devel"
+            ;;
+        libxext-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="libXcursor-devel"
+            ;;
+        libibus-1.0-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="ibus-libs"
+            ;;
+        libdbus-1-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="dbus-devel"
+            ;;
+        fcitx-libs-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="fcitx-libs"
+            ;;
+        libgles2-mesa-dev)
+            ;;
+        # libsndio-dev
+        *)
+        [[ "$__os_id" == "openEuler" && "$pkg" =~ -dev$ ]] && pkg=${pkg}el 
+        ;;
     esac
     echo "$pkg"
 }
@@ -366,41 +384,42 @@ function getDepends() {
     local all_pkgs=()
     local pkg
     for pkg in "$@"; do
-        pkg=($(_mapPackage "$pkg"))
+        pkgs=($(_mapPackage "$pkg"))
         # manage our custom packages (pkg = "RP module_id pkg_name")
-        if [[ "${pkg[0]}" == "RP" ]]; then
+        if [[ "${pkgs[0]}" == "RP" ]]; then
             # if removing, check if any version is installed and queue for removal via the custom module
             if [[ "$md_mode" == "remove" ]]; then
-                if hasPackage "${pkg[2]}"; then
-                    own_pkgs+=("${pkg[1]}")
-                    all_pkgs+=("${pkg[2]}(custom)")
+                if hasPackage "${pkgs[2]}"; then
+                    own_pkgs+=("${pkgs[1]}")
+                    all_pkgs+=("${pkgs[2]}(custom)")
                 fi
             else
                 # if installing check if our version is installed and queue for installing via the custom module
-                if hasPackage "${pkg[2]}" $(get_pkg_ver_${pkg[1]}) "ne"; then
-                    own_pkgs+=("${pkg[1]}")
-                    all_pkgs+=("${pkg[2]}(custom)")
+                if hasPackage "${pkgs[2]}" $(get_pkg_ver_${pkgs[1]}) "ne"; then
+                    own_pkgs+=("${pkgs[1]}")
+                    all_pkgs+=("${pkgs[2]}(custom)")
                 fi
             fi
             continue
         fi
 
-        if [[ "$md_mode" == "remove" ]]; then
-            # add package to target_pkgs for removal if installed
-            if hasPackage "$pkg"; then
-                target_pkgs+=("$pkg")
-                all_pkgs+=("$pkg")
+        for pkg in ${pkgs[*]}; do
+            if [[ "$md_mode" == "remove" ]]; then
+                # add package to target_pkgs for removal if installed
+                if hasPackage "$pkg"; then
+                    target_pkgs+=("$pkg")
+                    all_pkgs+=("$pkg")
+                fi
+            else
+                # add package to target_pkgs for installation if not installed
+                if ! hasPackage "$pkg"; then
+                    target_pkgs+=("$pkg")
+                    all_pkgs+=("$pkg")
+                fi
             fi
-        else
-            # add package to target_pkgs for installation if not installed
-            if ! hasPackage "$pkg"; then
-                target_pkgs+=("$pkg")
-                all_pkgs+=("$pkg")
-            fi
-        fi
+        done
 
     done
-
 
     # return if no packages required
     [[ ${#target_pkgs[@]} -eq 0 && ${#own_pkgs[@]} -eq 0 ]] && return
