@@ -64,7 +64,7 @@ function sources_mupen64plus() {
     # and pipe to xargs to strip whitespace
     local cmake_ver
     if [[ "$__os_id" == "openEuler" ]]; then
-        cmake_ver=$(sudo dnf info cmake | grep Version | head -1 | cut -d: -f2 | xargs)
+        cmake_ver=$(rpm -q --qf '%{VERSION}' cmake)
     else
         cmake_ver=$(apt-cache madison cmake | cut -d\| -f2 | sort --version-sort | head -1 | xargs)
     fi
