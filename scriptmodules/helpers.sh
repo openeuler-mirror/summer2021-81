@@ -696,12 +696,11 @@ function diffFiles() {
 ## @retval 0 if the comparison was true
 ## @retval 1 if the comparison was false
 function compareVersions() {
-    local __install_rpmdevtools=1
     if [[ "$__pkg_tool" == "apt-get" ]]; then
         dpkg --compare-versions "$1" "$2" "$3" >/dev/null
         return $?
     else
-        [[ "$__rpmdevtools_installed" == 0 ]] && $__pkg_tool install -y rpmdevtools && $__rpmdev_vercmp_installed=1
+        [[ -z "$__rpmdevtools_installed" ]] && $__pkg_tool install rpmdevtools -y -q && __rpmdevtools_installed=1
 
         if [[ -z $1 ]]; then
             if [[ "$2" == lt || "$2" == le || "$2" == ne ]]; then
@@ -709,11 +708,6 @@ function compareVersions() {
             else
                 return 1
             fi
-        fi
-
-        if [[ "$__install_rpmdevtools" == "1" ]];then
-            $__pkg_tool install rpmdevtools -y
-            __install_rpmdevtools=0
         fi
 
         rpmdev-vercmp "$1" "$3"
