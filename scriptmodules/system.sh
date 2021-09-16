@@ -134,7 +134,7 @@ function conf_build_vars() {
     [[ -z "$__makeflags" ]] && __makeflags="$__default_makeflags"
 
     # workaround for GCC ABI incompatibility with threaded armv7+ C++ apps built
-    # on Raspbian's armv6 userland git://github.com/raspberrypi/firmware/issues/491
+    # on Raspbian's armv6 userland https://github.com/raspberrypi/firmware/issues/491
     if [[ "$__os_id" == "Raspbian" ]] && compareVersions $__gcc_version lt 5; then
         __cxxflags+=" -U__GCC_HAVE_SYNC_COMPARE_AND_SWAP_2"
     fi
@@ -344,7 +344,7 @@ function get_rpi_video() {
     fi
 
     # delete legacy pkgconfig that conflicts with Mesa (may be installed via rpi-update)
-    # see: git://github.com/raspberrypi/userland/pull/585
+    # see: https://github.com/raspberrypi/userland/pull/585
     rm -rf $pkgconfig/{egl.pc,glesv2.pc,vg.pc}
 
     # set pkgconfig path for vendor libraries
@@ -356,7 +356,7 @@ function get_platform() {
     if [[ -z "$__platform" ]]; then
         case "$(sed -n '/^Hardware/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo)" in
             BCM*)
-                # calculated based on information from git://github.com/AndrewFromMelbourne/raspberry_pi_revision
+                # calculated based on information from https://github.com/AndrewFromMelbourne/raspberry_pi_revision
                 local rev="0x$(sed -n '/^Revision/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo)"
                 # if bit 23 is not set, we are on a rpi1 (bit 23 means the revision is a bitfield)
                 if [[ $((($rev >> 23) & 1)) -eq 0 ]]; then

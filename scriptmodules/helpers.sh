@@ -526,8 +526,6 @@ function gitPullOrClone() {
     local commit="$4"
     local depth="$5"
 
-    repo=$(echo $repo | sed 's/https/git/g')
-
     # if repo is blank then use the rp_module_repo info
     if [[ -z "$repo" && -n "$md_repo_url" ]]; then
         repo="$(rp_resolveRepoParam "$md_repo_url")"
