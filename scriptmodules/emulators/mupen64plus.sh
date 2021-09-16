@@ -55,6 +55,24 @@ function sources_mupen64plus() {
             'mupen64plus rsp-z64'
         )
     fi
+
+    local commit=""
+    # GLideN64 now requires cmake 3.9 so use an older commit as a workaround for systems with older cmake (pre buster).
+    # Test using "apt-cache madison" as this code could be called when cmake isn't yet installed but correct version
+    # is available - eg via update check with builder module which removes dependencies after building.
+    # Multiple versions may be available, so grab the versions via cut, sort by version, take the latest from the top
+    # and pipe to xargs to strip whitespace
+    local cmake_ver
+    if [[ "$__os_id" == "openEuler" ]]; then
+        cmake_ver=$(sudo dnf info cmake | grep Version | head -1 | cut -d: -f2 | xargs)
+    else
+        cmake_ver=$(apt-cache madison cmake | cut -d\| -f2 | sort --version-sort | head -1 | xargs)
+    fi
+    if compareVersions "$cmake_ver" lt 3.9; then
+        commit="8a9d52b41b33d853445f0779dd2b9f5ec4ecdda8"
+    fi
+    repos+=("gonetz GLideN64 master $commit")
+
     local repo
     local dir
     for repo in "${repos[@]}"; do

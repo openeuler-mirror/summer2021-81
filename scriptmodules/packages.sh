@@ -131,8 +131,8 @@ function rp_callModule() {
             ;;
         # automatically build/install module from source if no _source_ or no parameters are given
         ""|_source_)
-            for mode in depends sources build install configure clean; do
-                rp_callModule "$md_idx" "$mode" || return 1
+            for mode in depends sources build install configure; do
+                rp_callModule "$md_id" "$mode" || return 1
             done
             return 0
             ;;
