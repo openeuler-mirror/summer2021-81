@@ -712,7 +712,7 @@ function compareVersions() {
         fi
 
         if [[ "$__install_rpmdevtools" == "1" ]];then
-            __pkg_tool install rpmdevtools -y
+            $__pkg_tool install rpmdevtools -y
             __install_rpmdevtools=0
         fi
 
