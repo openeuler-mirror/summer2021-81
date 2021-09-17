@@ -63,14 +63,13 @@ function sources_mupen64plus() {
     # Multiple versions may be available, so grab the versions via cut, sort by version, take the latest from the top
     # and pipe to xargs to strip whitespace
     local cmake_ver
-    if [[ "$__os_id" == "openEuler" ]]; then
-        cmake_ver=$(rpm -q --qf '%{VERSION}' cmake)
-    else
+    if [[ "$__os_id" != "openEuler" ]]; then
         cmake_ver=$(apt-cache madison cmake | cut -d\| -f2 | sort --version-sort | head -1 | xargs)
+        if compareVersions "$cmake_ver" lt 3.9; then
+            commit="8a9d52b41b33d853445f0779dd2b9f5ec4ecdda8"
+        fi
     fi
-    if compareVersions "$cmake_ver" lt 3.9; then
-        commit="8a9d52b41b33d853445f0779dd2b9f5ec4ecdda8"
-    fi
+    
     repos+=("gonetz GLideN64 master $commit")
 
     local repo
