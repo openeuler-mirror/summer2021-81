@@ -316,7 +316,7 @@ function get_retropie_depends() {
 
     # make sure we don't have xserver-xorg-legacy installed as it breaks launching x11 apps from ES
     if ! isPlatform "x11" && hasPackage "xserver-xorg-legacy"; then
-        aptRemove xserver-xorg-legacy
+        pkgRemove xserver-xorg-legacy
     fi
 }
 

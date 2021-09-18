@@ -26,7 +26,7 @@ function install_bin_frotz() {
 }
 
 function remove_frotz() {
-    aptRemove frotz
+    pkgRemove frotz
 }
 
 function game_data_frotz() {

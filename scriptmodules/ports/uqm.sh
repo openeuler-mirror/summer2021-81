@@ -73,7 +73,7 @@ function install_bin_uqm() {
 }
 
 function remove_uqm() {
-    aptRemove uqm uqm-content uqm-music uqm-voice
+    pkgRemove uqm uqm-content uqm-music uqm-voice
 }
 
 function configure_uqm() {

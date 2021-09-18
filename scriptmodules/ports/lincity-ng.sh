@@ -29,7 +29,7 @@ function install_bin_lincity-ng() {
 }
 
 function remove_lincity-ng() {
-    aptRemove lincity-ng
+    pkgRemove lincity-ng
 }
 
 function configure_lincity-ng() {

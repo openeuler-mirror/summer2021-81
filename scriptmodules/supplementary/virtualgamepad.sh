@@ -29,11 +29,11 @@ function depends_virtualgamepad() {
         else
             getDepends curl
             # remove any old node package - we will use nodesource
-            hasPackage node && aptRemove node
+            hasPackage node && pkgRemove node
             curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
-            # force aptInstall to get a fresh list before installing
+            # force pkgInstall to get a fresh list before installing
             __apt_update=0
-            aptInstall nodejs
+            pkgInstall nodejs
         fi
     fi
 }

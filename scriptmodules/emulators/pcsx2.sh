@@ -55,7 +55,7 @@ function remove_pcsx2() {
     local version
     [[ -n "${__os_ubuntu_ver}" ]] && version="-unstable"
 
-    aptRemove "pcsx2$version"
+    pkgRemove "pcsx2$version"
     rp_callModule pcsx2 depends remove
 }
 

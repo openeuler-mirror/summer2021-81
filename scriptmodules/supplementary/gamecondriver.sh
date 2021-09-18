@@ -18,8 +18,14 @@ rp_module_flags="!all rpi"
 function depends_gamecondriver() {
     # remove any old kernel headers for current kernel
     local kernel_ver="$(uname -r)"
-    if hasPackage linux-headers-"${kernel_ver}" "${kernel_ver}-2" "eq"; then
-        aptRemove "linux-headers-${kernel_ver}"
+    if [[ "$__os_id" == "openEuler" ]];then
+        if hasPackage kernel-headers-"${kernel_ver}" "${kernel_ver}-2" "eq"; then
+            pkgRemove "kernel-headers-${kernel_ver}"
+        fi
+    else
+        if hasPackage linux-headers-"${kernel_ver}" "${kernel_ver}-2" "eq"; then
+            pkgRemove "linux-headers-${kernel_ver}"
+        fi
     fi
     getDepends dkms raspberrypi-kernel-headers
 }
@@ -72,8 +78,8 @@ function _remove_gamecondriver_files()
     dkmsManager remove db9_gpio_rpi
 
     # Remove older version of the driver, installed as Debian packages
-    hasPackage gamecon-gpio-rpi-dkms && aptRemove gamecon-gpio-rpi-dkms
-    hasPackage db9-gpio-rpi-dkms && aptRemove db9-gpio-rpi-dkms
+    hasPackage gamecon-gpio-rpi-dkms && pkgRemove gamecon-gpio-rpi-dkms
+    hasPackage db9-gpio-rpi-dkms && pkgRemove db9-gpio-rpi-dkms
 }
 
 function remove_gamecondriver() {

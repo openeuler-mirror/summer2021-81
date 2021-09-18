@@ -25,7 +25,7 @@ function install_bin_openttd() {
 }
 
 function remove_openttd() {
-    aptRemove openttd
+    pkgRemove openttd
 }
 
 function configure_openttd() {

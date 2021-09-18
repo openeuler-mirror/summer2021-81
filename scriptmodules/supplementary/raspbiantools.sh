@@ -23,7 +23,8 @@ function apt_upgrade_raspbiantools() {
 }
 
 function lxde_raspbiantools() {
-    aptInstall --no-install-recommends xorg lxde
+
+    pkgInstallNoRecommends xorg lxde
     pkgInstall raspberrypi-ui-mods rpi-chromium-mods gvfs
 
     setConfigRoot "ports"

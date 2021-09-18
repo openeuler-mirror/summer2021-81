@@ -25,7 +25,7 @@ function install_bin_minecraft() {
 }
 
 function remove_minecraft() {
-    aptRemove minecraft-pi
+    pkgRemove minecraft-pi
 }
 
 function configure_minecraft() {

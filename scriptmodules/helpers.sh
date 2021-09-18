@@ -171,10 +171,11 @@ function hasPackage() {
         fi
         return 1
     else
-        rpm -q $1
+        rpm -q "$1"
         [[ "$?" == "1" ]] && return 1  # if not found package, return false
         
-        local ver=$(rpm -q --qf '%{epochnum}:%{V}-%{R}' $1)
+        local ver
+        ver=$(rpm -q --qf '%{epochnum}:%{V}-%{R}' "$1")
 
         [[ -z "$req_ver" ]] && return 0     # we are not checking version, return true
             
@@ -186,9 +187,11 @@ function hasPackage() {
 ## @fn aptUpdate()
 ## @brief Calls apt-get update (if it has not been called before).
 function aptUpdate() {
-    if [[ "$__apt_update" != "1" ]]; then
-        apt-get update
-        __apt_update="1"
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        if [[ "$__apt_update" != "1" ]]; then
+            apt-get update
+            __apt_update="1"
+        fi
     fi
 }
 
@@ -196,9 +199,7 @@ function aptUpdate() {
 ## @param packages package / space separated list of packages to install
 ## @brief Calls apt-get/yum/dnf install with the packages provided. attention: this function will not check your install option, so if you use options like --no-install-recommends, use aptInstall instead.
 function pkgInstall() {
-    if [[ "$__pkg_tool" == "apt-get" ]]; then
-        aptUpdate
-    fi
+    aptUpdate
     $__pkg_tool install -y "$@"
     return $?
 }
@@ -212,13 +213,23 @@ function aptInstall() {
     return $?
 }
 
-## @fn pkgRemove()
+## @fn pkgInstallNoRecommends()
 ## @param packages package / space separated list of packages to install
+## @brief Calls apt-get/yum/dnf install the packages provided. 
+function pkgInstallNoRecommends() {
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        aptInstall --no-install-recommends "${apt_pkgs[@]}"
+    else
+        $__pkg_tool install -y --setopt=install_weak_deps=False "${apt_pkgs[@]}"
+    fi
+    return $?
+}
+
+## @fn pkgRemove()
+## @param packages package / space separated list of packages to remove
 ## @brief Calls apt-get/yum/dnf remove with the packages provided. attention: this function will not check your remove option, so if you use options like --purge, use aptRemove instaed.
 function pkgRemove() {
-    if [[ "$__pkg_tool" == "apt-get" ]]; then
-        aptUpdate
-    fi
+    aptUpdate
     $__pkg_tool remove -y "$@"
     return $?
 }
@@ -380,40 +391,41 @@ function _mapPackage() {
 ## @retval 1 on failure
 function getDepends() {
     local own_pkgs=()
-    local target_pkgs=()
+    local apt_pkgs=()
     local all_pkgs=()
     local pkg
     for pkg in "$@"; do
-        pkgs=($(_mapPackage "$pkg"))
+        pkg=($(_mapPackage "$pkg"))
         # manage our custom packages (pkg = "RP module_id pkg_name")
-        if [[ "${pkgs[0]}" == "RP" ]]; then
+        if [[ "${pkg[0]}" == "RP" ]]; then
             # if removing, check if any version is installed and queue for removal via the custom module
             if [[ "$md_mode" == "remove" ]]; then
-                if hasPackage "${pkgs[2]}"; then
-                    own_pkgs+=("${pkgs[1]}")
-                    all_pkgs+=("${pkgs[2]}(custom)")
+                if hasPackage "${pkg[2]}"; then
+                    own_pkgs+=("${pkg[1]}")
+                    all_pkgs+=("${pkg[2]}(custom)")
                 fi
             else
                 # if installing check if our version is installed and queue for installing via the custom module
-                if hasPackage "${pkgs[2]}" $(get_pkg_ver_${pkgs[1]}) "ne"; then
-                    own_pkgs+=("${pkgs[1]}")
-                    all_pkgs+=("${pkgs[2]}(custom)")
+                if hasPackage "${pkg[2]}" $(get_pkg_ver_${pkg[1]}) "ne"; then
+                    own_pkgs+=("${pkg[1]}")
+                    all_pkgs+=("${pkg[2]}(custom)")
                 fi
             fi
             continue
         fi
 
+        pkgs=($pkg)
         for pkg in ${pkgs[*]}; do
             if [[ "$md_mode" == "remove" ]]; then
-                # add package to target_pkgs for removal if installed
+                # add package to apt_pkgs for removal if installed
                 if hasPackage "$pkg"; then
-                    target_pkgs+=("$pkg")
+                    apt_pkgs+=("$pkg")
                     all_pkgs+=("$pkg")
                 fi
             else
-                # add package to target_pkgs for installation if not installed
+                # add package to apt_pkgs for installation if not installed
                 if ! hasPackage "$pkg"; then
-                    target_pkgs+=("$pkg")
+                    apt_pkgs+=("$pkg")
                     all_pkgs+=("$pkg")
                 fi
             fi
@@ -421,8 +433,9 @@ function getDepends() {
 
     done
 
+
     # return if no packages required
-    [[ ${#target_pkgs[@]} -eq 0 && ${#own_pkgs[@]} -eq 0 ]] && return
+    [[ ${#apt_pkgs[@]} -eq 0 && ${#own_pkgs[@]} -eq 0 ]] && return
 
     # if we are removing, then remove packages, do an autoremove to clean up additional packages and return
     if [[ "$md_mode" == "remove" ]]; then
@@ -431,10 +444,10 @@ function getDepends() {
             rp_callModule "$pkg" remove
         done
         if [[ "$__pkg_tool" == "apt-get" ]]; then
-            apt-get remove --purge -y "${target_pkgs[@]}"
+            apt-get remove --purge -y "${apt_pkgs[@]}"
             apt-get autoremove --purge -y
         else
-            $__pkg_tool remove -y "${target_pkgs[@]}"
+            $__pkg_tool remove -y "${apt_pkgs[@]}"
             $__pkg_tool autoremove -y
         fi
         return 0
@@ -446,16 +459,13 @@ function getDepends() {
     for pkg in ${own_pkgs[@]}; do
        rp_callModule "$pkg" _auto_
     done
-    if [[ "$__pkg_tool" == "apt-get" ]]; then
-        aptInstall --no-install-recommends "${target_pkgs[@]}"
-    else
-        $__pkg_tool install -y --setopt=install_weak_deps=False "${target_pkgs[@]}"
-    fi
+
+    pkgInstallNoRecommends "${apt_pkgs[@]}"
 
     local failed=()
     # check the required packages again rather than return code of apt-get,
     # as apt-get might fail for other reasons (eg other half installed packages)
-    for pkg in ${target_pkgs[@]}; do
+    for pkg in ${apt_pkgs[@]}; do
         if ! hasPackage "$pkg"; then
             # workaround for installing samba in a chroot (fails due to failed smbd service restart)
             # we replace the init.d script with an empty script so the install completes
@@ -525,15 +535,6 @@ function gitPullOrClone() {
     [[ -z "$branch" ]] && branch="master"
     local commit="$4"
     local depth="$5"
-
-    # if repo is blank then use the rp_module_repo info
-    if [[ -z "$repo" && -n "$md_repo_url" ]]; then
-        repo="$(rp_resolveRepoParam "$md_repo_url")"
-        branch="$(rp_resolveRepoParam "$md_repo_branch")"
-        commit="$(rp_resolveRepoParam "$md_repo_commit")"
-    fi
-    [[ -z "$repo" ]] && return 1
-    [[ -z "$branch" ]] && branch="master"
     if [[ -z "$depth" && "$__persistent_repos" -ne 1 && -z "$commit" ]]; then
         depth=1
     else

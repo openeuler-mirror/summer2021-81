@@ -68,7 +68,7 @@ function install_bin_fs-uae() {
 }
 
 function remove_fs-uae() {
-    aptRemove fs-uae fs-uae-launcher fs-uae-arcade
+    pkgRemove fs-uae fs-uae-launcher fs-uae-arcade
 }
 
 function configure_fs-uae() {

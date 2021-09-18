@@ -37,7 +37,7 @@ function install_bin_openpht() {
 }
 
 function remove_openpht() {
-    aptRemove openpht
+    pkgRemove openpht
 }
 
 function configure_openpht() {

@@ -24,7 +24,7 @@ function install_bin_micropolis() {
 }
 
 function remove_micropolis() {
-    aptRemove micropolis
+    pkgRemove micropolis
 }
 
 function configure_micropolis() {
