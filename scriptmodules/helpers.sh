@@ -315,7 +315,7 @@ function _mapPackage() {
             [[ "$__os_id" == "openEuler" ]] && pkg=libusbx-devel
             ;;
         libx11-xcb-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="libX11-devel libXxf86vm-devel"
+            [[ "$__os_id" == "openEuler" ]] && pkg="libX11-devel libXxf86vm-devel mesa-dri-drivers"
             ;;
         libx11-dev)
             [[ "$__os_id" == "openEuler" ]] && pkg=libX11-devel
