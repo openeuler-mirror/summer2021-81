@@ -375,6 +375,7 @@ function _mapPackage() {
             [[ "$__os_id" == "openEuler" ]] && pkg="fcitx-libs"
             ;;
         libgles2-mesa-dev)
+            [[ "$__os_id" == "openEuler" ]] && pkg="mesa-dri-drivers"
             ;;
         # libsndio-dev
         *)
