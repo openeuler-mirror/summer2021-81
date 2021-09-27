@@ -294,6 +294,9 @@ function get_os_version() {
         openEuler)
             __os_openEuler_ver=$__os_release
             ;;
+        fedora)
+            __os_id=openEuler
+            ;;
         *)
             error="Unsupported OS"
             ;;
