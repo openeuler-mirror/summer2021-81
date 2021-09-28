@@ -195,6 +195,16 @@ function aptUpdate() {
     fi
 }
 
+## @fn aptDistUpdate()
+## @brief upgrade system.
+function DistUpdate() {
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        apt-get -y dist-upgrade
+    else
+        $__pkg_tool update -y
+    fi
+}
+
 ## @fn pkgInstall()
 ## @param packages package / space separated list of packages to install
 ## @brief Calls apt-get/yum/dnf install with the packages provided. attention: this function will not check your install option, so if you use options like --no-install-recommends, use aptInstall instead.
@@ -210,6 +220,21 @@ function pkgInstall() {
 function aptInstall() {
     aptUpdate
     apt-get install -y "$@"
+    return $?
+}
+
+## @fn aptDistUpdate()
+## @param packages package / space separated list of packages to remove
+## @brief remove packages
+function pkgRemove() {
+    $__pkg_tool remove -y "$@"
+    return $?
+}
+
+## @fn pkgAutoRemove()
+## @brief autoremove packages
+function pkgAutoRemove() {
+    $__pkg_tool autoremove -y
     return $?
 }
 
