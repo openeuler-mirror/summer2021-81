@@ -223,39 +223,15 @@ function aptInstall() {
     return $?
 }
 
-## @fn pkgRemove()
-## @param packages package / space separated list of packages to remove
-## @brief remove packages
-function pkgRemove() {
-    $__pkg_tool remove -y "$@"
-    return $?
-}
-
-## @fn pkgAutoRemove()
-## @brief autoremove packages
-function pkgAutoRemove() {
-    $__pkg_tool autoremove -y
-    return $?
-}
-
 ## @fn pkgInstallNoRecommends()
 ## @param packages package / space separated list of packages to install
 ## @brief Calls apt-get/yum/dnf install the packages provided. 
 function pkgInstallNoRecommends() {
     if [[ "$__pkg_tool" == "apt-get" ]]; then
-        aptInstall --no-install-recommends "${apt_pkgs[@]}"
+        aptInstall --no-install-recommends "$@"
     else
-        $__pkg_tool install -y --setopt=install_weak_deps=False "${apt_pkgs[@]}"
+        $__pkg_tool install -y --setopt=install_weak_deps=False "$@"
     fi
-    return $?
-}
-
-## @fn pkgRemove()
-## @param packages package / space separated list of packages to remove
-## @brief Calls apt-get/yum/dnf remove with the packages provided. attention: this function will not check your remove option, so if you use options like --purge, use aptRemove instaed.
-function pkgRemove() {
-    aptUpdate
-    $__pkg_tool remove -y "$@"
     return $?
 }
 
@@ -265,6 +241,33 @@ function pkgRemove() {
 function aptRemove() {
     aptUpdate
     apt-get remove -y "$@"
+    return $?
+}
+
+## @fn pkgRemove()
+## @param packages package / space separated list of packages to remove
+## @brief Calls apt-get/yum/dnf remove with the packages provided. attention: this function will not check your remove option, so if you use options like --purge, use aptRemove instaed.
+function pkgRemove() {
+    $__pkg_tool remove -y "$@"
+    return $?
+}
+
+## @fn pkgRemove()
+## @param packages package / space separated list of packages to remove
+## @brief remove packages
+function pkgRemovePurge() {
+    if [[ "$__pkg_tool" == "apt-get" ]]; then
+        apt-get remove --purge -y "$@"
+    else
+        $__pkg_tool remove -y "$@"
+    fi
+    return $?
+}
+
+## @fn pkgAutoRemove()
+## @brief autoremove packages
+function pkgAutoRemove() {
+    $__pkg_tool autoremove -y
     return $?
 }
 
@@ -482,13 +485,8 @@ function getDepends() {
         for pkg in ${own_pkgs[@]}; do
             rp_callModule "$pkg" remove
         done
-        if [[ "$__pkg_tool" == "apt-get" ]]; then
-            apt-get remove --purge -y "${apt_pkgs[@]}"
-            apt-get autoremove --purge -y
-        else
-            $__pkg_tool remove -y "${apt_pkgs[@]}"
-            $__pkg_tool autoremove -y
-        fi
+        pkgRemovePurge "${apt_pkgs[@]}"
+        pkgAutoRemove
         return 0
     fi
 
