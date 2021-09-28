@@ -171,7 +171,7 @@ function hasPackage() {
         fi
         return 1
     else
-        rpm -q "$1"
+        rpm --query --quiet "$1"
         [[ "$?" == "1" ]] && return 1  # if not found package, return false
         
         local ver
