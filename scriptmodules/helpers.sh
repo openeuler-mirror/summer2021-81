@@ -363,6 +363,8 @@ function Deb2Rpm(){
             libgles2-mesa-dev)
                 pkg="mesa-dri-drivers"
                 ;;
+            libraspberrypi-dev)
+                ;;
             *)
                 [[ "$pkg" =~ -dev$ ]] && pkg=${pkg}el
                 ;; 
