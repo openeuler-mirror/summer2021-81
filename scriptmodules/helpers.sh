@@ -272,6 +272,10 @@ function aptRemove() {
 ## @param package Debian package to be trasfered to rpm
 ## @brief map Debian packages name to rpm
 function Deb2Rpm(){
+    local pkg="$1"
+    if [[ "$pkg" ==  lsb-release ]]; then
+        [[ -f /etc/os-release && -n "$(grep openEuler /etc/os-release)" ]] && pkg="openeuler-lsb"
+    fi
     if [[ "$__os_id" == "openEuler" ]]; then
         case "$pkg" in
             dirmngr)
@@ -283,9 +287,6 @@ function Deb2Rpm(){
             build-essential)
                 # this package will contain gcc, g++, make, dpkg-dev. Because openEuler use rpm, we can ignore dpkg-dev. since we will install gcc, g++, make, altogether, we just need to install "make" to replace build-essential.
                 pkg="make"
-                ;;
-            lsb-release)
-                [[ -f /etc/os-release && -n "$(grep openEuler /etc/os-release)" ]] && pkg="openeuler-lsb"
                 ;;
             libudev-dev)
                 pkg="systemd-devel"
@@ -359,12 +360,12 @@ function Deb2Rpm(){
             libgles2-mesa-dev)
                 pkg="mesa-dri-drivers"
                 ;;
-            # libsndio-dev
             *)
                 [[ "$pkg" =~ -dev$ ]] && pkg=${pkg}el
                 ;; 
         esac
     fi
+    echo "$pkg"
 }
 
 function _mapPackage() {
@@ -418,9 +419,7 @@ function _mapPackage() {
             ;;
         *)
     esac
-    if [[ "$__os_id" == "openEuler" ]]; then
-        Deb2Rpm "$pkg"
-    fi
+    pkg=($(Deb2Rpm "$pkg"))
     echo "$pkg"
 }
 
