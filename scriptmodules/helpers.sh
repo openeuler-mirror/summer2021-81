@@ -243,6 +243,105 @@ function aptRemove() {
     return $?
 }
 
+## @fn Deb2Rpm()
+## @param package Debian package to be trasfered to rpm
+## @brief map Debian packages name to rpm
+function Deb2Rpm(){
+    if [[ "$__os_id" == "openEuler" ]]; then
+        case "$pkg" in
+            dirmngr)
+                pkg="gnupg2"
+                ;;
+            g++)
+                pkg="gcc-c++"
+                ;;
+            build-essential)
+                # this package will contain gcc, g++, make, dpkg-dev. Because openEuler use rpm, we can ignore dpkg-dev. since we will install gcc, g++, make, altogether, we just need to install "make" to replace build-essential.
+                pkg="make"
+                ;;
+            lsb-release)
+                [[ -f /etc/os-release && -n "$(grep openEuler /etc/os-release)" ]] && pkg="openeuler-lsb"
+                ;;
+            libudev-dev)
+                pkg="systemd-devel"
+                ;;
+            libasound2-dev)
+                pkg="alsa-lib-devel libcec-devel"
+                ;;
+            libusb-1.0-0-dev)
+                pkg="libusbx-devel"
+                ;;
+            libx11-xcb-dev)
+                pkg="libX11-devel libXxf86vm-devel"
+                ;;
+            libx11-dev)
+                pkg="libX11-devel"
+                ;;
+            libgbm-dev)
+                pkg="mesa-libgbm-devel"
+                ;;
+            libfreeimage-dev)
+                pkg="freeimage-devel"
+                ;;
+            libcurl4-openssl-dev)
+                pkg="libcurl-devel"
+                ;;
+            libsm-dev)
+                pkg="libSM-devel"
+                ;;
+            fbi)
+                pkg="fbida"
+                ;;
+            libsamplerate0-dev)
+                pkg="libsamplerate-devel"
+                ;;
+            libspeexdsp-dev)
+                pkg="speexdsp-devel"
+                ;;
+            fonts-freefont-ttf)
+                pkg="texlive-gnu-freefont"
+                ;;
+            libfreetype6-dev)
+                pkg="freetype-devel"
+                ;;
+            libvlc-dev)
+                pkg="vlc-devel"
+                ;;
+            libvlccore-dev)
+                pkg="vlc-core"
+                ;;
+            libboost-filesystem-dev)
+                pkg="boost-filesystem boost-devel libcec-devel"
+                ;;
+            libxxf86vm-dev)
+                pkg="libXxf86vm-devel"
+                ;;
+            libxcursor-dev)
+                pkg="libXcursor-devel"
+                ;;
+            libxext-dev)
+                pkg="libXcursor-devel"
+                ;;
+            libibus-1.0-dev)
+                pkg="ibus-libs"
+                ;;
+            libdbus-1-dev)
+                pkg="dbus-devel"
+                ;;
+            fcitx-libs-dev)
+                pkg="fcitx-libs"
+                ;;
+            libgles2-mesa-dev)
+                pkg="mesa-dri-drivers"
+                ;;
+            # libsndio-dev
+            *)
+                [[ "$pkg" =~ -dev$ ]] && pkg=${pkg}el
+                ;; 
+        esac
+    fi
+}
+
 function _mapPackage() {
     local pkg="$1"
     case "$pkg" in
@@ -292,96 +391,11 @@ function _mapPackage() {
                 [[ "$own_sdl2" -eq 1 ]] && pkg="RP sdl2 $pkg"
             fi
             ;;
-        dirmngr)
-            [[ "$__os_id" == "openEuler" ]] && pkg=gnupg2
-            ;;
-        g++)
-            [[ "$__os_id" == "openEuler" ]] && pkg=gcc-c++
-            ;;
-        build-essential)
-            # this package will contain gcc, g++, make, dpkg-dev. Because openEuler use rpm, we can ignore dpkg-dev. since we will install gcc, g++, make, altogether, we just need to install "make" to replace build-essential.
-            [[ "$__os_id" == "openEuler" ]] && pkg=make
-            ;;
-        lsb-release)
-            [[ -f /etc/os-release && -n "$(grep openEuler /etc/os-release)" ]] && pkg="openeuler-lsb"
-            ;;
-        libudev-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=systemd-devel
-            ;;
-        libasound2-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="alsa-lib-devel libcec-devel"
-            ;;
-        libusb-1.0-0-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libusbx-devel
-            ;;
-        libx11-xcb-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="libX11-devel libXxf86vm-devel"
-            ;;
-        libx11-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libX11-devel
-            ;;
-        libgbm-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=mesa-libgbm-devel
-            ;;
-        libfreeimage-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=freeimage-devel
-            ;;
-        libcurl4-openssl-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libcurl-devel
-            ;;
-        libsm-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libSM-devel
-            ;;
-        fbi)
-            [[ "$__os_id" == "openEuler" ]] && pkg=fbida
-            ;;
-        libsamplerate0-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=libsamplerate-devel
-            ;;
-        libspeexdsp-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=speexdsp-devel
-            ;;
-        fonts-freefont-ttf)
-            [[ "$__os_id" == "openEuler" ]] && pkg=texlive-gnu-freefont
-            ;;
-        libfreetype6-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=freetype-devel
-            ;;
-        libvlc-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=vlc-devel
-            ;;
-        libvlccore-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg=vlc-core
-            ;;
-        libboost-filesystem-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="boost-filesystem boost-devel libcec-devel"
-            ;;
-        libxxf86vm-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="libXxf86vm-devel"
-            ;;
-        libxcursor-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="libXcursor-devel"
-            ;;
-        libxext-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="libXcursor-devel"
-            ;;
-        libibus-1.0-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="ibus-libs"
-            ;;
-        libdbus-1-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="dbus-devel"
-            ;;
-        fcitx-libs-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="fcitx-libs"
-            ;;
-        libgles2-mesa-dev)
-            [[ "$__os_id" == "openEuler" ]] && pkg="mesa-dri-drivers"
-            ;;
-        # libsndio-dev
         *)
-        [[ "$__os_id" == "openEuler" && "$pkg" =~ -dev$ ]] && pkg=${pkg}el 
-        ;;
     esac
+    if [[ "$__os_id" == "openEuler" ]]; then
+        Deb2Rpm "$pkg"
+    fi
     echo "$pkg"
 }
 
