@@ -19,7 +19,7 @@ function apt_upgrade_raspbiantools() {
     stretch_fix_raspbiantools
 
     aptUpdate
-    apt-get -y dist-upgrade
+    DistUpdate
 }
 
 function lxde_raspbiantools() {
@@ -34,8 +34,8 @@ function lxde_raspbiantools() {
 
 function package_cleanup_raspbiantools() {
     # remove PulseAudio since this is slowing down the whole system significantly. Cups is also not needed
-    apt-get remove -y pulseaudio cups wolfram-engine sonic-pi
-    apt-get -y autoremove
+    pkgRemove pulseaudio cups wolfram-engine sonic-pi
+    pkgAutoRemove
 }
 
 function disable_blanker_raspbiantools() {
