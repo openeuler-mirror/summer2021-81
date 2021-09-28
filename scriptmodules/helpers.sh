@@ -223,7 +223,7 @@ function aptInstall() {
     return $?
 }
 
-## @fn aptDistUpdate()
+## @fn pkgRemove()
 ## @param packages package / space separated list of packages to remove
 ## @brief remove packages
 function pkgRemove() {

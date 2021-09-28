@@ -14,10 +14,8 @@ function setup_env() {
     __ERRMSGS=()
     __INFMSGS=()
 
-    # if no apt-get we need to fail
-    # [[ -z "$(which apt-get)" ]] && fatalError "Unsupported OS - No apt-get command found"
-
     # identify package management tools
+    # tmeporary I support openEuler in raspberry, there is some packages to be maped in Fedora
     if [[ -n "$(which apt-get)" ]]; then
         __pkg_tool=apt-get
     elif [[ -n "$(which dnf)" ]]; then
@@ -166,7 +164,7 @@ function get_os_version() {
     # __os_release="${os[2]}"
     # __os_codename="${os[3]}"
 
-    # openeuler_lsb will output all results in a single line, so we can't use mapfile
+    # openeuler/Fedora lsb_release will output all results in a single line, so we can't use mapfile
     __os_id=$(lsb_release -s -i)
     __os_desc=$(lsb_release -s -d)
     __os_release=$(lsb_release -s -r)
@@ -292,6 +290,9 @@ function get_os_version() {
             fi
             ;;
         openEuler)
+            if compareVersions "$__os_release" lt 21.03; then
+                error="You need openEuler 21.03 or newer"
+            fi
             __os_openEuler_ver=$__os_release
             ;;
         *)
