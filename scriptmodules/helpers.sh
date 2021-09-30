@@ -373,13 +373,22 @@ function Deb2Rpm(){
                 pkg="libXrandr-devel"
                 ;;
             libxss-dev)
-                //TODO
+                pkg="libXScrnSaver-devel"
                 ;;
             libxt-dev)
                 pkg="libXt-devel"
                 ;;
             libxv-dev)
                 pkg="libXv-devel"
+                ;;
+            libgl1-mesa-dev)
+                pkg="mesa-libGL-devel"
+                ;;
+            libegl1-mesa-dev)
+                pkg="mesa-libEGL-devel"
+                ;;
+            libglu1-mesa-dev)
+                pkg="mesa-libGLU-devel"
                 ;;
             libraspberrypi-dev)
                 ;;
@@ -430,19 +439,7 @@ function _mapPackage() {
             ;;
         libsdl2-dev)
             if [[ "$__os_id" == "openEuler" ]]; then
-                # pkg="SDL2-devel libdrm-devel"
-                if rp_hasModule "sdl2"; then
-                    # check whether to use our own sdl2 - can be disabled to resolve issues with
-                    # mixing custom 64bit sdl2 and os distributed i386 version on multiarch
-                    local own_sdl2=1
-                    # default to off for x11 targets due to issues with dependencies with recent
-                    # Ubuntu (19.04). eg libavdevice58 requiring exactly 2.0.9 sdl2.
-                    isPlatform "x11" && own_sdl2=0
-                    iniConfig " = " '"' "$configdir/all/retropie.cfg"
-                    iniGet "own_sdl2"
-                    [[ "$ini_value" == "1" ]] && own_sdl2=1
-                    [[ "$own_sdl2" -eq 1 ]] && pkg="RP sdl2 SDL2-devel"
-                fi
+                pkg="SDL2-devel libdrm-devel"
             else
                 if rp_hasModule "sdl2"; then
                     # check whether to use our own sdl2 - can be disabled to resolve issues with
@@ -476,9 +473,7 @@ function getDepends() {
     local all_pkgs=()
     local pkg
     for pkg in "$@"; do
-        echo "### before map pkg=$pkg ###"
         pkg=($(_mapPackage "$pkg"))
-        echo "### after  map pkg=${pkg[*]} ###"
         # manage our custom packages (pkg = "RP module_id pkg_name")
         if [[ "${pkg[0]}" == "RP" ]]; then
             # if removing, check if any version is installed and queue for removal via the custom module
