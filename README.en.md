@@ -5,16 +5,58 @@ The scripts inside this repository can run Retropie on a Raspberry PI 4 running 
 
 Retropie can runs a lot of old games like Pac-Man.
 
-## Install
-First, I ported over 140 packages that openEuler doesn't have, and you'll have to wait for me to submit them to the openEuler community before you can install them, or I'll will find a place so you can download them.
+## System requirements
+You'll need a **openEuler 21.03** raspberry PI image, [The official link](https://repo.openeuler.org/openEuler-21.03/raspi_img/openEuler-21.03-raspi-aarch64.img.xz)
 
+Note that the password is openeuler
+
+You can then burn a Raspberry Pi image to an SD card using the official Raspberry Pi Imager. [Link](https://www.raspberrypi.org/software/)。
+
+For WIFI configuration, see openEuler [official documentation](https://gitee.com/openeuler/raspberrypi/blob/master/documents/%E6%A0%91%E8%8E%93%E6%B4%BE%E4%BD%BF%E7%94%A8.md)
+
+Then connect your raspberry PI to a screen and use WIFI to connect to your raspberry PI, so you can control your raspberry PI remotely with an SSH connection
+
+## Install
+
+### Download additional Software Packages
+First of all, I have ported over 140 installation packages that openEuler does not have. This subpackage is still being submitted and can be installed directly using DNF after the approval is successful.
+
+Before passing the audit, you can download the package that I compiled in advance and uploaded to Baidu network disk.
+
+Link: https://pan.baidu.com/s/1vjyh-_D9O2CGXGyNxPU3kg
+Extraction code: 1234
+
+Once downloaded, you need to upload it to the raspberry pie and do the following:
+```shell
+cd ~
+tar xf rpmbuild_raspberry.tar
+```
+
+Make a note of the current directory location, such as this is mine:
+```shell
+$ pwd
+/home/ouyang
+```
+
+Then you need to create a local repo source, as demonstrated here by Vim:
+```shell
+sudo vim /etc/yum.repos.d/locale.repo
+#复制粘贴一下内容：
+[locale]
+name=locale rpmbuild packages
+baseurl=file:///home/ouyang/rpmbuild/RPMS ## Replace /home/ouyang with your own directory (PWD)
+enabled=1
+gpgcheck=0
+```
+
+## Install Git
 Second, you need to install the necessary installation packages:
 
 ```shell
 sudo dnf update 
 sudo dnf install git
 ```
-
+## Install Retropie
 Then you can run the installation script.
 
 ```shell

@@ -5,10 +5,51 @@ English Version [README](./README.en.md)
 
 Retropie 是一个复古游戏机，能跑很多以前游戏机的游戏，比如吃豆人啥的。
 
-## 安装
-首先，我移植了 140 多个 openEuler 没有的安装包，你需要等我把这些软件包提交到 openEuler 社区之后才能安装，或者我得想办法上传到哪里你能下载的地方。
+## 系统要求
+你需要一个 **openEuler 21.03** 的树莓派镜像，[官方链接](https://repo.openeuler.org/openEuler-21.03/raspi_img/openEuler-21.03-raspi-aarch64.img.xz)
 
-其次，你需要安装必要的安装包：
+注意，密码是 openeuler
+
+然后你可以按照官方的指导，将树莓派镜像烧写到SD卡中，这里推荐使用树莓派官方的 Raspberry Pi Imager，[链接](https://www.raspberrypi.org/software/)。
+
+然后 WIFI 配置，可以参考 openEuler [官方文档](https://gitee.com/openeuler/raspberrypi/blob/master/documents/%E6%A0%91%E8%8E%93%E6%B4%BE%E4%BD%BF%E7%94%A8.md)
+
+然后将你的树莓派连上一个显示屏，并用 WIFI 连接到树莓派，方便你用 ssh 远程连接控制你的树莓派
+
+## 安装
+
+### 下载额外软件包
+首先，我移植了 140 多个 openEuler 没有的安装包，这部分包还在提交过程中，等审核成功后可以使用 dnf 直接安装。
+
+在没有通过审核之前，可以下载我提前编译好的，上传到百度网盘里的包。
+
+链接：https://pan.baidu.com/s/1vjyh-_D9O2CGXGyNxPU3kg 
+提取码：1234
+
+下载后，你需要传到树莓派里面，然后做以下操作：
+```shell
+cd ~
+tar xf rpmbuild_raspberry.tar
+```
+
+记录下当前的目录位置，比如这是我的：
+```shell
+$ pwd
+/home/ouyang
+```
+
+然后你需要创建一个本地的repo源，这里以vim演示：
+```shell
+sudo vim /etc/yum.repos.d/locale.repo
+#复制粘贴一下内容：
+[locale]
+name=locale rpmbuild packages
+baseurl=file:///home/ouyang/rpmbuild/RPMS ## 这里的/home/ouyang 请替换为刚才 pwd 命令输出的，你自己的目录
+enabled=1
+gpgcheck=0
+```
+
+### 安装并配置 git
 
 ```shell
 sudo dnf update 
@@ -21,6 +62,8 @@ sudo dnf install git
 sudo su 
 git config --global url."git@github.com:".insteadOf https://github.com/
 ```
+
+### 安装 Retropie
 
 然后你就可以运行安装脚本了
 
