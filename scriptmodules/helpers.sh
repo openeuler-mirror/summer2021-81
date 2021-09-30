@@ -363,6 +363,37 @@ function Deb2Rpm(){
             libgles2-mesa-dev)
                 pkg="mesa-dri-drivers"
                 ;;
+            libxi-dev)
+                pkg="libXi-devel"
+                ;;
+            libxinerama-dev)
+                pkg="libXinerama-devel"
+                ;;
+            libxrandr-dev)
+                pkg="libXrandr-devel"
+                ;;
+            libxss-dev)
+                pkg="libXScrnSaver-devel"
+                ;;
+            libxt-dev)
+                pkg="libXt-devel"
+                ;;
+            libxv-dev)
+                pkg="libXv-devel"
+                ;;
+            libgl1-mesa-dev)
+                pkg="mesa-libGL-devel"
+                ;;
+            libegl1-mesa-dev)
+                pkg="mesa-libEGL-devel"
+                ;;
+            libglu1-mesa-dev)
+                pkg="mesa-libGLU-devel"
+                ;;
+            libraspberrypi-dev)
+                ;;
+            libsndio-dev)
+                ;;
             *)
                 [[ "$pkg" =~ -dev$ ]] && pkg=${pkg}el
                 ;; 
@@ -407,22 +438,27 @@ function _mapPackage() {
             rp_hasModule "sdl1" && pkg="RP sdl1 $pkg"
             ;;
         libsdl2-dev)
-            if rp_hasModule "sdl2"; then
-                # check whether to use our own sdl2 - can be disabled to resolve issues with
-                # mixing custom 64bit sdl2 and os distributed i386 version on multiarch
-                local own_sdl2=1
-                # default to off for x11 targets due to issues with dependencies with recent
-                # Ubuntu (19.04). eg libavdevice58 requiring exactly 2.0.9 sdl2.
-                isPlatform "x11" && own_sdl2=0
-                iniConfig " = " '"' "$configdir/all/retropie.cfg"
-                iniGet "own_sdl2"
-                [[ "$ini_value" == "1" ]] && own_sdl2=1
-                [[ "$own_sdl2" -eq 1 ]] && pkg="RP sdl2 $pkg"
+            if [[ "$__os_id" == "openEuler" ]]; then
+                pkg="SDL2-devel libdrm-devel"
+            else
+                if rp_hasModule "sdl2"; then
+                    # check whether to use our own sdl2 - can be disabled to resolve issues with
+                    # mixing custom 64bit sdl2 and os distributed i386 version on multiarch
+                    local own_sdl2=1
+                    # default to off for x11 targets due to issues with dependencies with recent
+                    # Ubuntu (19.04). eg libavdevice58 requiring exactly 2.0.9 sdl2.
+                    isPlatform "x11" && own_sdl2=0
+                    iniConfig " = " '"' "$configdir/all/retropie.cfg"
+                    iniGet "own_sdl2"
+                    [[ "$ini_value" == "1" ]] && own_sdl2=1
+                    [[ "$own_sdl2" -eq 1 ]] && pkg="RP sdl2 $pkg"
+                fi
             fi
             ;;
         *)
+            pkg=$(Deb2Rpm "$pkg")
+            ;;
     esac
-    pkg=($(Deb2Rpm "$pkg"))
     echo "$pkg"
 }
 
@@ -456,19 +492,18 @@ function getDepends() {
             continue
         fi
 
-        pkgs=($pkg)
-        for pkg in ${pkgs[*]}; do
+        for package in ${pkg[*]}; do
             if [[ "$md_mode" == "remove" ]]; then
                 # add package to apt_pkgs for removal if installed
-                if hasPackage "$pkg"; then
-                    apt_pkgs+=("$pkg")
-                    all_pkgs+=("$pkg")
+                if hasPackage "$package"; then
+                    apt_pkgs+=("$package")
+                    all_pkgs+=("$package")
                 fi
             else
                 # add package to apt_pkgs for installation if not installed
-                if ! hasPackage "$pkg"; then
-                    apt_pkgs+=("$pkg")
-                    all_pkgs+=("$pkg")
+                if ! hasPackage "$package"; then
+                    apt_pkgs+=("$package")
+                    all_pkgs+=("$package")
                 fi
             fi
         done
@@ -494,6 +529,7 @@ function getDepends() {
 
     # install any custom packages
     for pkg in ${own_pkgs[@]}; do
+        echo rp_callModule "$pkg" _auto_
        rp_callModule "$pkg" _auto_
     done
 
