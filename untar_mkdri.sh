@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 up=~/upload
 mkdir -p $up
 tot=$(find . -name "*.src.rpm" | wc -l)
@@ -11,7 +11,6 @@ for file in *.src.rpm; do
     pushd "$dir"
     rpm2cpio "$file" | cpio -idmv
     rm "$file"
-    git init
     popd
     cnt=$((cnt+1))
     num=$(echo "scale=2; $cnt / $tot * 100" | bc)
